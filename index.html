@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abdullah Khan | 3D Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --bg-dark: #0a0f1d;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* 3D Canvas Background */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 4px;
+        }
+
+        /* Layout Structure */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2.5rem;
+            position: relative;
+        }
+
+        @media (max-width: 968px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .sidebar {
+                position: relative !important;
+                top: 0 !important;
+            }
+        }
+
+        /* Glassmorphism Global Style */
+        .glass-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .glass-panel:hover {
+            box-shadow: 0 12px 40px 0 rgba(0, 242, 254, 0.15);
+        }
+
+        /* Sidebar / Contact Info */
+        .sidebar {
+            position: sticky;
+            top: 2rem;
+            height: fit-content;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-img-container {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--primary);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        .profile-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .sidebar h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar .tag {
+            font-size: 0.85rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .contact-info {
+            width: 100%;
+            text-align: left;
+            border-top: 1px solid var(--card-border);
+            padding-top: 1.5rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            font-size: 0.9rem;
+        }
+
+        .contact-item i {
+            font-size: 1.2rem;
+            color: var(--primary);
+            width: 35px;
+        }
+
+        .contact-item div p:first-child {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #fff;
+        }
+
+        section h2 i {
+            color: var(--primary);
+        }
+
+        p.summary-text {
+            color: var(--text-muted);
+            line-height: 1.8;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Skills Grid */
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .skill-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .skill-badge:hover {
+            background: linear-gradient(45deg, rgba(0, 242, 254, 0.2), rgba(79, 172, 254, 0.2));
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        /* Timeline (Education) */
+        .timeline {
+            position: relative;
+            border-left: 2px solid var(--card-border);
+            padding-left: 1.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2.5rem;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: calc(-1.5rem - 7px);
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .timeline-date {
+            font-size: 0.8rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .timeline-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* Personal Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--card-border);
+            padding: 1rem;
+            border-radius: 12px;
+        }
+
+        .info-box span {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .info-box text {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* Music Player Button */
+        #music-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+        }
+
+        #music-toggle:hover {
+            background: var(--primary);
+            color: var(--bg-dark);
+            transform: scale(1.1);
+        }
+        
+        #music-toggle.playing {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 242, 254, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 242, 254, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 242, 254, 0); }
+        }
+    </style>
+</head>
+<body>
+
+
+    <div id="canvas-container"></div>
+
+    <div class="container">
+        
+        <aside class="glass-panel sidebar" data-tilt>
+            <div class="profile-img-container">
+                <img src="ABd-prtfl.jpeg" alt="Abdullah Khan" id="profile-pic" onerror="this.src='https://via.placeholder.com/150/0a0f1d/00f2fe?text=AK'">
+            </div>
+            <h1>Abdullah Khan</h1>
+            <div class="tag">Digital Marketer | SEO & Shopify Expert</div>
+            
+            <div class="contact-info">
+                <div class="contact-item">
+                    <i class="fa-solid fa-phone"></i>
+                    <div>
+                        <p>Call Me</p>
+                        <p>03184084845</p>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <div>
+                        <p>Location</p>
+                        <p style="font-size: 0.8rem;">Ittefaq Town, Multan Road, Lahore</p>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <i class="fa-solid fa-language"></i>
+                    <div>
+                        <p>Languages</p>
+                        <p style="font-size: 0.8rem;">Urdu (Native), English</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            
+            <section class="glass-panel" data-tilt>
+                <h2><i class="fa-solid fa-user-tie"></i> Professional Summary</h2>
+                <p class="summary-text">
+                    Multi-skilled and detail-oriented digital professional specializing in Digital Marketing, SEO, Shopify Store Management, Graphic Designing, and Professional Video Editing. 
+                </p>
+                <p class="summary-text">
+                    Experienced in creating engaging digital content, improving online visibility, and managing e-commerce platforms. A quick learner equipped with strong communication and problem-solving abilities, blending strong creativity with deep technical expertise.
+                </p>
+            </section>
+
+            <section class="glass-panel" data-tilt>
+                <h2><i class="fa-solid fa-laptop-code"></i> Core Competencies</h2>
+                <div class="skills-grid">
+                    <div class="skill-badge"><i class="fa-solid fa-bullhorn" style="color: #ff9900;"></i> Digital Marketing</div>
+                    <div class="skill-badge"><i class="fa-solid fa-magnifying-glass-chart" style="color: #00f2fe;"></i> SEO</div>
+                    <div class="skill-badge"><i class="fa-brands fa-shopify" style="color: #95BF47;"></i> Shopify Management</div>
+                    <div class="skill-badge"><i class="fa-solid fa-palette" style="color: #e34c26;"></i> Graphic Design</div>
+                    <div class="skill-badge"><i class="fa-solid fa-video" style="color: #e83e8c;"></i> Professional Video Editing</div>
+                    <div class="skill-badge"><i class="fa-solid fa-hashtag" style="color: #1da1f2;"></i> Social Media Marketing</div>
+                    <div class="skill-badge"><i class="fa-solid fa-bullseye" style="color: #dc3545;"></i> Branding & Promotion</div>
+                    <div class="skill-badge"><i class="fa-solid fa-chart-pie" style="color: #ffc107;"></i> Strategy & Analytics</div>
+                    <div class="skill-badge"><i class="fa-brands fa-microsoft" style="color: #00a4ef;"></i> MS Office Suite</div>
+                </div>
+            </section>
+
+            <section class="glass-panel" data-tilt>
+                <h2><i class="fa-solid fa-screwdriver-wrench"></i> Tools & Platforms</h2>
+                <div class="skills-grid">
+                    <div class="skill-badge"><i class="fa-brands fa-google"></i> Google Ads & Analytics</div>
+                    <div class="skill-badge"><i class="fa-solid fa-chart-simple"></i> SEMrush / Ahrefs</div>
+                    <div class="skill-badge"><i class="fa-solid fa-image"></i> Adobe Photoshop & Illustrator</div>
+                    <div class="skill-badge"><i class="fa-solid fa-film"></i> CapCut / After Effects</div>
+                    <div class="skill-badge"><i class="fa-solid fa-pen-nib"></i> Canva</div>
+                </div>
+            </section>
+
+            <section class="glass-panel" data-tilt>
+                <h2><i class="fa-solid fa-bolt"></i> Strengths</h2>
+                <div class="skills-grid">
+                    <div class="skill-badge"><i class="fa-solid fa-lightbulb"></i> Creative Thinker</div>
+                    <div class="skill-badge"><i class="fa-solid fa-rocket"></i> Self-Motivated</div>
+                    <div class="skill-badge"><i class="fa-solid fa-brain"></i> Quick Learner</div>
+                    <div class="skill-badge"><i class="fa-solid fa-comments"></i> Strong Communication</div>
+                    <div class="skill-badge"><i class="fa-solid fa-clock"></i> Time Management</div>
+                    <div class="skill-badge"><i class="fa-solid fa-puzzle-piece"></i> Problem Solver</div>
+                </div>
+            </section>
+
+            <section class="glass-panel" data-tilt>
+                <h2><i class="fa-solid fa-graduation-cap"></i> Education</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">Completed</div>
+                        <div class="timeline-title">Intermediate (Inter)</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">Completed</div>
+                        <div class="timeline-title">Matriculation</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="glass-panel" data-tilt>
+                <h2><i class="fa-solid fa-id-card"></i> Personal Details</h2>
+                <div class="info-grid">
+                    <div class="info-box"><span>Father's Name</span><text>Masood Ahmad Khan</text></div>
+                    <div class="info-box"><span>Age</span><text>20 Years Old</text></div>
+                    <div class="info-box"><span>CNIC</span><text>35202-8802903-5</text></div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+
+    <script>
+        // --- 1. INITIALIZE 3D BACKGROUND (Three.js) ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        // Create 3D Particle Constellation Vortex
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 1500;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for(let i=0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 10;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+        // Particle Styling
+        const material = new THREE.PointsMaterial({
+            size: 0.007,
+            color: 0x00f2fe,
+            transparent: true,
+            opacity: 0.7,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, material);
+        scene.add(particlesMesh);
+        camera.position.z = 3;
+
+        // Mouse interaction tracker
+        let mouseX = 0;
+        let mouseY = 0;
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) - 0.5;
+            mouseY = (event.clientY / window.innerHeight) - 0.5;
+        });
+
+        // 3D Animation Loop
+        const animate = () => {
+            requestAnimationFrame(animate);
+            
+            // Slow continuous 3D rotation
+            particlesMesh.rotation.y += 0.001;
+            particlesMesh.rotation.x += 0.0005;
+
+            // Make background respond dynamically to user mouse movement
+            particlesMesh.rotation.y += mouseX * 0.05;
+            particlesMesh.rotation.x += -mouseY * 0.05;
+
+            renderer.render(scene, camera);
+        };
+        animate();
+
+        // Responsive window resizing for 3D element
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- 2. INITIALIZE 3D CARD TILT EFFECT ---
+        VanillaTilt.init(document.querySelectorAll(".glass-panel"), {
+            max: 8,          // Maximum tilt angle (degrees)
+            speed: 400,      // Speed of transition
+            glare: true,     // Give panels a "glass" reflection shine
+            "max-glare": 0.1 // Max glare opacity
+        });
+
+        // --- 3. BACKGROUND MUSIC CONTROLLER ---
+        const audio = document.getElementById('bg-music');
+        const playBtn = document.getElementById('music-toggle');
+        const playIcon = playBtn.querySelector('i');
+        let isPlaying = false;
+
+        playBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                audio.pause();
+                playIcon.classList.remove('fa-pause');
+                playIcon.classList.add('fa-play');
+                playBtn.classList.remove('playing');
+            } else {
+                // Ensure audio is loaded and play is handled securely based on browser policies
+                audio.play().then(() => {
+                    playIcon.classList.remove('fa-play');
+                    playIcon.classList.add('fa-pause');
+                    playBtn.classList.add('playing');
+                }).catch(err => {
+                    console.log("Audio play failed, ensure the audio file exists.", err);
+                });
+            }
+            isPlaying = !isPlaying;
+        });
+    </script>
+</body>
+</html>
